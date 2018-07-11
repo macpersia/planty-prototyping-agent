@@ -1,0 +1,27 @@
+{
+  "name": "prototyping-agent",
+  "version": "1.0.0",
+  "description": "",
+  "_main": "index.js",
+  "dependencies": {
+    "generator-jhipster": "^5.0.2",
+    "yeoman-environment": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^10.5.2",
+    "@types/yeoman-generator": "^2.0.3",
+    "typescript": "^2.9.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/index.js",
+    "build-ts": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/assistant-developers/prototyping-agent.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/assistant-developers/prototyping-agent#readme"
+}
