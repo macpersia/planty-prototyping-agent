@@ -5,7 +5,8 @@
   "_main": "index.js",
   "dependencies": {
     "generator-jhipster": "^5.0.2",
-    "yeoman-environment": "^2.3.0"
+    "yeoman-environment": "^2.3.0",
+    "yeoman-gen-run": "^1.2.3"
   },
   "devDependencies": {
     "@types/node": "^10.5.2",
@@ -15,7 +16,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/index.js",
-    "build-ts": "tsc"
+    "build-ts": "tsc",
+    "watch-ts": "tsc -w"
   },
   "repository": {
     "type": "git",
