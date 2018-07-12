@@ -1,41 +1,28 @@
-lib-cov
-*.seed
-*.log
-*.csv
-*.dat
-*.out
-*.pid
-*.gz
-*.swp
+/target/
+!.mvn/wrapper/maven-wrapper.jar
 
-pids
-logs
-results
-tmp
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
 
-# Build
-public/css/main.css
-
-# Coverage reports
-coverage
-
-# API keys and secrets
-.env
-
-# Dependency directory
-node_modules
-bower_components
-
-# Editors
+### IntelliJ IDEA ###
 .idea
+*.iws
 *.iml
+*.ipr
 
-# OS metadata
-.DS_Store
-Thumbs.db
+### NetBeans ###
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 
-# Ignore built ts files
-dist/**/*
-
-# Ignore output from coverage report
-coverage
+# Added by Hadi
+/node_modules/
