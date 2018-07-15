@@ -33,14 +33,14 @@ public class PrototypingAgentApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        final String url = "ws://localhost:8080/websocket/pairing";
-        WebSocketClient socketClient = new StandardWebSocketClient();
+        final var url = "ws://localhost:8080/websocket/pairing";
+        final var socketClient = new StandardWebSocketClient();
 
         //WebSocketStompClient stompClient = new WebSocketStompClient(socketClient);
-        SockJsClient sockJsClient = new SockJsClient(asList(
+        final var sockJsClient = new SockJsClient(asList(
                 new WebSocketTransport(socketClient)
         ));
-        WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
+        final var stompClient = new WebSocketStompClient(sockJsClient);
 
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         final StompSessionHandler handler = new PairingSessionHandler();
@@ -61,7 +61,7 @@ class PairingSessionHandler extends StompSessionHandlerAdapter {
         this.session = session;
         logger.info("Connected!");
         session.subscribe("/topic/pairing/responses", this);
-        final Object payload = new PairingRequest("Agent X", "1234", "ASDF");
+        final var payload = new PairingRequest("Agent X", "1234", "ASDF");
         logger.info("Sending: " + toPrettyJson(payload));
         session.send("/topic/pairing/requests", payload);
     }
@@ -86,17 +86,17 @@ class PairingSessionHandler extends StompSessionHandlerAdapter {
     }
 
     static void subscribeToAgentRequests() {
-        final String url = "ws://localhost:8080/websocket/agent";
-        WebSocketClient socketClient = new StandardWebSocketClient();
+        final var url = "ws://localhost:8080/websocket/agent";
+        final var socketClient = new StandardWebSocketClient();
 
         //WebSocketStompClient stompClient = new WebSocketStompClient(socketClient);
-        SockJsClient sockJsClient = new SockJsClient(asList(
+        final var sockJsClient = new SockJsClient(asList(
                 new WebSocketTransport(socketClient)
         ));
-        WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
+        final var stompClient = new WebSocketStompClient(sockJsClient);
 
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
-        final StompSessionHandler handler = new AgentSessionHandler();
+        final var handler = new AgentSessionHandler();
         logger.info("Connecting to: " + url + " ...");
         stompClient.connect(url, handler);
     }
