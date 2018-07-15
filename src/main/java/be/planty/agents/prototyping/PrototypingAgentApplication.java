@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.stomp.StompSession.Receiptable;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.web.socket.client.WebSocketClient;
@@ -42,15 +43,15 @@ public class PrototypingAgentApplication implements CommandLineRunner {
         WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
 
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
-        final StompSessionHandler handler = new MySessionHandler();
+        final StompSessionHandler handler = new PairingSessionHandler();
         logger.info("Connecting to: " + url + " ...");
         stompClient.connect(url, handler);
     }
 }
 
-class MySessionHandler extends StompSessionHandlerAdapter {
+class PairingSessionHandler extends StompSessionHandlerAdapter {
 
-    private static final Logger logger = LoggerFactory.getLogger(MySessionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(PairingSessionHandler.class);
 
     private static final ObjectWriter objWriter = new ObjectMapper().writerWithDefaultPrettyPrinter();
     private StompSession session;
@@ -59,10 +60,10 @@ class MySessionHandler extends StompSessionHandlerAdapter {
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
         this.session = session;
         logger.info("Connected!");
-        session.subscribe("/topic/requests", this);
+        session.subscribe("/topic/pairing/responses", this);
         final Object payload = new PairingRequest("Agent X", "1234", "ASDF");
         logger.info("Sending: " + toPrettyJson(payload));
-        session.send("/topic/pairing", payload);
+        session.send("/topic/pairing/requests", payload);
     }
 
     private String toPrettyJson(Object payload) {
@@ -79,14 +80,31 @@ class MySessionHandler extends StompSessionHandlerAdapter {
 //			logger.info("Received: " + msg.getPayload() + ", from: " + msg.getFrom());
         logger.info("Received headers: " + headers);
         logger.info("Received payload: " + payload);
-        if (headers.getDestination().equals("/topic/requests")) {
-            session.send("/topic/responses", "Thank you for choosing me!");
+        if (payload.toString().equals("accepted")) {
+            subscribeToAgentRequests();
         }
+    }
+
+    static void subscribeToAgentRequests() {
+        final String url = "ws://localhost:8080/websocket/agent";
+        WebSocketClient socketClient = new StandardWebSocketClient();
+
+        //WebSocketStompClient stompClient = new WebSocketStompClient(socketClient);
+        SockJsClient sockJsClient = new SockJsClient(asList(
+                new WebSocketTransport(socketClient)
+        ));
+        WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
+
+        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        final StompSessionHandler handler = new AgentSessionHandler();
+        logger.info("Connecting to: " + url + " ...");
+        stompClient.connect(url, handler);
     }
 
 }
 
 class PairingRequest {
+
     public final String name;
     public final String verificationCode;
     public final String publicKey;
@@ -98,3 +116,25 @@ class PairingRequest {
     }
 }
 
+class AgentSessionHandler extends StompSessionHandlerAdapter {
+
+    private static final Logger logger = LoggerFactory.getLogger(PairingSessionHandler.class);
+    private StompSession session;
+
+    @Override
+    public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
+        this.session = session;
+        logger.info("Subscribing to /topic/agent/requests...");
+        session.subscribe("/topic/agent/requests", this);
+    }
+
+    @Override
+    public void handleFrame(StompHeaders headers, Object payload) {
+        logger.info("Received headers: " + headers);
+        logger.info("Received payload: " + payload);
+        if (headers.getDestination().equals("/topic/agent/requests")) {
+            session.send("/topic/agent/responses", "Thank you for choosing me!");
+        }
+    }
+
+}
