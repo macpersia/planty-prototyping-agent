@@ -8,13 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSession.Receiptable;
-import org.springframework.messaging.simp.stomp.StompSessionHandler;
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
-import org.springframework.web.socket.client.WebSocketClient;
+import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.simp.stomp.*;
+import org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
@@ -42,36 +40,33 @@ public class PrototypingAgentApplication implements CommandLineRunner {
         ));
         final var stompClient = new WebSocketStompClient(sockJsClient);
 
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        stompClient.setMessageConverter(
+                new CompositeMessageConverter(asList(
+                    new MappingJackson2MessageConverter(),
+                    new StringMessageConverter()
+        )));
+
+        stompClient.setTaskScheduler(new DefaultManagedTaskScheduler());
         final StompSessionHandler handler = new PairingSessionHandler();
         logger.info("Connecting to: " + url + " ...");
         stompClient.connect(url, handler);
     }
 }
 
-class PairingSessionHandler extends StompSessionHandlerAdapter {
+class PairingSessionHandler extends MyStompSessionHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(PairingSessionHandler.class);
 
-    private static final ObjectWriter objWriter = new ObjectMapper().writerWithDefaultPrettyPrinter();
     private StompSession session;
 
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
         this.session = session;
         logger.info("Connected!");
-        session.subscribe("/topic/pairing/responses", this);
+        session.subscribe("/topic/pairing.res", this);
         final var payload = new PairingRequest("Agent X", "1234", "ASDF");
         logger.info("Sending: " + toPrettyJson(payload));
-        session.send("/topic/pairing/requests", payload);
-    }
-
-    private String toPrettyJson(Object payload) {
-        try {
-            return objWriter.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            return String.valueOf(payload);
-        }
+        session.send("/topic/pairing.req", payload);
     }
 
     @Override
@@ -116,7 +111,7 @@ class PairingRequest {
     }
 }
 
-class AgentSessionHandler extends StompSessionHandlerAdapter {
+class AgentSessionHandler extends MyStompSessionHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(PairingSessionHandler.class);
     private StompSession session;
@@ -124,17 +119,42 @@ class AgentSessionHandler extends StompSessionHandlerAdapter {
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
         this.session = session;
-        logger.info("Subscribing to /topic/agent/requests...");
-        session.subscribe("/topic/agent/requests", this);
+        logger.info("Subscribing to /topic/agent.req...");
+        session.subscribe("/topic/agent.req", this);
     }
 
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
         logger.info("Received headers: " + headers);
         logger.info("Received payload: " + payload);
-        if (headers.getDestination().equals("/topic/agent/requests")) {
-            session.send("/topic/agent/responses", "Thank you for choosing me!");
+        if (headers.getDestination().equals("/topic/agent.req")) {
+            session.send("/topic/agent.res", "Thank you for choosing me!");
         }
     }
 
+}
+
+class MyStompSessionHandlerAdapter extends StompSessionHandlerAdapter {
+
+    private static final Logger logger = LoggerFactory.getLogger(MyStompSessionHandlerAdapter.class);
+
+    private static final ObjectWriter objWriter = new ObjectMapper().writerWithDefaultPrettyPrinter();
+
+    @Override
+    public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload, Throwable exception) {
+        logger.error(exception.toString(), exception);
+    }
+
+    @Override
+    public void handleTransportError(StompSession session, Throwable exception) {
+        logger.error(exception.toString(), exception);
+    }
+
+    protected String toPrettyJson(Object payload) {
+        try {
+            return objWriter.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            return String.valueOf(payload);
+        }
+    }
 }
