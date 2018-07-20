@@ -159,16 +159,16 @@ class AgentSessionHandler extends MyStompSessionHandlerAdapter {
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
         this.session = session;
-        logger.info("Subscribing to /topic/agent.req...");
-        session.subscribe("/topic/agent.req", this);
+        logger.info("Subscribing to /topic/action.req...");
+        session.subscribe("/topic/action.req", this);
     }
 
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
         logger.info("Received headers: " + headers);
         logger.info("Received payload: " + payload);
-        if (headers.getDestination().equals("/topic/agent.req")) {
-            session.send("/topic/agent.res", "Thank you for choosing me!");
+        if (headers.getDestination().equals("/topic/action.req")) {
+            session.send("/topic/action.res", "Thank you for choosing me!");
         }
     }
 
