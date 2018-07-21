@@ -8,12 +8,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
-import org.springframework.messaging.simp.stomp.*;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.stomp.StompHeaders;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -23,8 +24,8 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 import javax.security.sasl.AuthenticationException;
 import java.util.HashMap;
-import java.util.Map;
 
+import static be.planty.agents.prototyping.PrototypingAgentApplication.createStompClient;
 import static java.util.Arrays.asList;
 import static org.springframework.util.StringUtils.isEmpty;
 
@@ -33,40 +34,26 @@ public class PrototypingAgentApplication implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(PrototypingAgentApplication.class);
 
+    static final String baseUrl = System.getProperty("be.planty.assistant.login.url");
+    static final String username = System.getProperty("be.planty.assistant.access.id");
+    static final String password = System.getProperty("be.planty.assistant.access.key");
+    static final String wsUrl = System.getProperty("be.planty.assistant.ws.url"); // e.g. ws://localhost:8080/websocket
+
     public static void main(String[] args) {
         SpringApplication.run(PrototypingAgentApplication.class, args);
     }
 
     @Override
     public void run(String... args) throws Exception {
-        final String baseUrl = System.getProperty("be.planty.assistant.login.url");
-        final String username = System.getProperty("be.planty.assistant.access.id");
-        final String password = System.getProperty("be.planty.assistant.access.key");
-        final Map<String, String> request = new HashMap(){{
-            put("username", username);
-            put("password", password);
-        }};
-        final ResponseEntity<String> response = new RestTemplate()
-                .postForEntity(baseUrl, request, String.class);
+        final var accessToken = login(baseUrl, username, password);
+        final var url = wsUrl + "/pairing?access_token=" + accessToken;
+        final var stompClient = createStompClient();
+        final var handler = new PairingSessionHandler(accessToken, wsUrl);
+        logger.info("Connecting to: " + url + " ...");
+        stompClient.connect(url, handler);
+    }
 
-        if (response.getStatusCode().isError()) {
-            logger.error(response.toString());
-            throw new AuthenticationException(response.toString());
-        }
-        final HttpHeaders respHeaders = response.getHeaders();
-        final String authHeader = respHeaders.getFirst("Authorization");
-        if (isEmpty(authHeader)) {
-            final String msg = "No 'Authorization header found!";
-            logger.error(msg + " : " + response.toString());
-            throw new AuthenticationException(msg);
-        }
-        if (!authHeader.startsWith("Bearer ")) {
-            final String msg = "The 'Authorization header does not start with 'Bearer '!";
-            logger.error(msg + " : " + authHeader);
-            throw new AuthenticationException(msg);
-        }
-        final String accessToken = authHeader.substring(7);
-        final var url = "ws://localhost:8080/websocket/pairing?access_token=" + accessToken;
+    static WebSocketStompClient createStompClient() {
         final var socketClient = new StandardWebSocketClient();
 
         //WebSocketStompClient stompClient = new WebSocketStompClient(socketClient);
@@ -80,11 +67,34 @@ public class PrototypingAgentApplication implements CommandLineRunner {
                     new MappingJackson2MessageConverter(),
                     new StringMessageConverter()
         )));
-
         stompClient.setTaskScheduler(new DefaultManagedTaskScheduler());
-        final StompSessionHandler handler = new PairingSessionHandler(accessToken);
-        logger.info("Connecting to: " + url + " ...");
-        stompClient.connect(url, handler);
+        return stompClient;
+    }
+
+    private String login(String baseUrl, String username, String password) throws AuthenticationException {
+        final var request = new HashMap(){{
+            put("username", username);
+            put("password", password);
+        }};
+        final var response = new RestTemplate().postForEntity(baseUrl, request, String.class);
+
+        if (response.getStatusCode().isError()) {
+            logger.error(response.toString());
+            throw new AuthenticationException(response.toString());
+        }
+        final var respHeaders = response.getHeaders();
+        final var authHeader = respHeaders.getFirst("Authorization");
+        if (isEmpty(authHeader)) {
+            final var msg = "No 'Authorization header found!";
+            logger.error(msg + " : " + response.toString());
+            throw new AuthenticationException(msg);
+        }
+        if (!authHeader.startsWith("Bearer ")) {
+            final var msg = "The 'Authorization header does not start with 'Bearer '!";
+            logger.error(msg + " : " + authHeader);
+            throw new AuthenticationException(msg);
+        }
+        return authHeader.substring(7);
     }
 }
 
@@ -94,9 +104,11 @@ class PairingSessionHandler extends MyStompSessionHandlerAdapter {
 
     private StompSession session;
     private String accessToken;
+    private String wsUrl;
 
-    public PairingSessionHandler(String accessToken){
+    public PairingSessionHandler(String accessToken, String wsUrl){
         this.accessToken = accessToken;
+        this.wsUrl = wsUrl;
     }
 
     @Override
@@ -116,21 +128,13 @@ class PairingSessionHandler extends MyStompSessionHandlerAdapter {
         logger.info("Received headers: " + headers);
         logger.info("Received payload: " + payload);
         if (payload.toString().equals("accepted")) {
-            subscribeToAgentRequests(accessToken);
+            subscribeToAgentRequests(wsUrl, accessToken);
         }
     }
 
-    static void subscribeToAgentRequests(String accessToken) {
-        final var url = "ws://localhost:8080/websocket/agent?access_token=" + accessToken;
-        final var socketClient = new StandardWebSocketClient();
-
-        //WebSocketStompClient stompClient = new WebSocketStompClient(socketClient);
-        final var sockJsClient = new SockJsClient(asList(
-                new WebSocketTransport(socketClient)
-        ));
-        final var stompClient = new WebSocketStompClient(sockJsClient);
-
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+    static void subscribeToAgentRequests(String wsUrl, String accessToken) {
+        final var url = wsUrl + "/action?access_token=" + accessToken;
+        final var stompClient = createStompClient();
         final var handler = new AgentSessionHandler();
         logger.info("Connecting to: " + url + " ...");
         stompClient.connect(url, handler);
@@ -159,6 +163,7 @@ class AgentSessionHandler extends MyStompSessionHandlerAdapter {
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
         this.session = session;
+        logger.info("Connected!");
         logger.info("Subscribing to /topic/action.req...");
         session.subscribe("/topic/action.req", this);
     }
