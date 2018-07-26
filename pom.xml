@@ -4,12 +4,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>be.planty.agents.prototyping</groupId>
-	<artifactId>prototyping-agent</artifactId>
+	<artifactId>planty-prototyping-agent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>Prototyping Agent</name>
-	<description></description>
+	<name>Planty Prototyping Agent</name>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
