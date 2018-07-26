@@ -19,7 +19,7 @@
 <!--
 	<parent>
 		<groupId>be.planty.agents.assistant</groupId>
-		<artifactId>assistant-agent</artifactId>
+		<artifactId>planty-assistant-agent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath/> &lt;!&ndash; lookup parent from repository &ndash;&gt;
 	</parent>
@@ -36,7 +36,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>be.planty.agents.assistant</groupId>
-			<artifactId>assistant-agent</artifactId>
+			<artifactId>planty-assistant-agent</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
