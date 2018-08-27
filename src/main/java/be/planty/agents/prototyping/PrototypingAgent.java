@@ -5,8 +5,9 @@ import be.planty.agents.assistant.AssistantAgent;
 public class PrototypingAgent extends AssistantAgent {
 
     public PrototypingAgent() {
-        super("Agent Prototyper");
+        super("Agent Prototyper", new PrototypingSessionHandler());
     }
+
 }
 
 
