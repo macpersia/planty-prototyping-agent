@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 
+import static be.planty.models.assistant.Constants.PAYLOAD_TYPE_KEY;
+
 public class PrototypingSessionHandler extends AgentSessionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(PrototypingSessionHandler.class);
@@ -19,7 +21,7 @@ public class PrototypingSessionHandler extends AgentSessionHandler {
 
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
-        super.handleFrame(headers, payload);
+        //super.handleFrame(headers, payload);
         if (payload instanceof ActionRequest) {
             try {
                 final String prettyJson = objectWriter.writeValueAsString(payload);
@@ -29,8 +31,10 @@ public class PrototypingSessionHandler extends AgentSessionHandler {
                 logger.error(e.getMessage());
             }
             final var response = new ActionResponse(HttpStatus.OK.value());
+            final StompHeaders newHeaders = createStompHeaders(headers);
+            newHeaders.set(PAYLOAD_TYPE_KEY, response.getClass().getTypeName());
             logger.info("Sending: " + response);
-            session.send("/topic/action-responses", response);
+            session.send(newHeaders, response);
         }
     }
 }
