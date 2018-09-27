@@ -31,12 +31,18 @@ public class PrototypingSessionHandler extends AgentSessionHandler {
 
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
-        //super.handleFrame(headers, payload);
+        super.handleFrame(headers, payload);
         if (payload instanceof ActionRequest
-                || "NewWebAppIntent".equals(((ActionRequest) payload).action)) {
+                && "NewWebAppIntent".equals(((ActionRequest) payload).action)) {
             try {
                 final var prettyJson = objectWriter.writeValueAsString(payload);
                 logger.info("Received action request: " + prettyJson);
+
+                // TODO: remove the following once the implementation is ready
+                if (true) {
+                    sendActionResponse(headers, HttpStatus.NOT_IMPLEMENTED.value());
+                    return;
+                }
 
                 final var actionRequest = (ActionRequest) payload;
                 final var phoneNumber = actionRequest.parameters.getOrDefault("phoneNumber", "0123456789");
