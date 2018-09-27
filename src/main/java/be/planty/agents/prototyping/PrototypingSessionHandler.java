@@ -40,7 +40,7 @@ public class PrototypingSessionHandler extends AgentSessionHandler {
 
                 final var actionRequest = (ActionRequest) payload;
                 final var phoneNumber = actionRequest.parameters.getOrDefault("phoneNumber", "0123456789");
-                final var appName = actionRequest.parameters.get("webAppName");
+                final var appName = actionRequest.parameters.get("appName");
 
                 final var moreDetailsResponse = new RestTemplate()
                         .getForEntity(BASE_URL + "/more-details/phone-no/" + phoneNumber, Map.class);
