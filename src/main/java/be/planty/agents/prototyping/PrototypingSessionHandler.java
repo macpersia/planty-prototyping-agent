@@ -41,7 +41,7 @@ public class PrototypingSessionHandler extends AgentSessionHandler {
                 // TODO: remove the following once the implementation is ready
                 if (true) {
                     try {
-                        Thread.currentThread().sleep(10000);
+                        Thread.currentThread().sleep(5000);
 
                     } catch (InterruptedException e) {
                         logger.error(e.getMessage(), e);
