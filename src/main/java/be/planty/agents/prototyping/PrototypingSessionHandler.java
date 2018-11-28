@@ -94,6 +94,8 @@ public class PrototypingSessionHandler extends AgentSessionHandler {
     }
 
     private void sendActionResponse(StompHeaders headers, ActionResponse actionResponse) {
+        logger.info("Request STOMP headers (original)...");
+        headers.forEach((k, v) -> logger.info("\t" + k + ": " + v));
         final var newHeaders = createStompHeaders(headers);
         newHeaders.set(PAYLOAD_TYPE_KEY, actionResponse.getClass().getTypeName());
         logger.info("Sending: " + actionResponse + "...");
@@ -103,6 +105,8 @@ public class PrototypingSessionHandler extends AgentSessionHandler {
         } catch (JsonProcessingException e) {
             logger.error(e.getMessage());
         }
+        logger.info("Response STOMP headers (new)...");
+        newHeaders.forEach((k, v) -> logger.info("\t" + k + ": " + v));
         session.send(newHeaders, actionResponse);
     }
 }
