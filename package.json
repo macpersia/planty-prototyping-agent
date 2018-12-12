@@ -1,7 +1,7 @@
 {
-  "name": "prototyping-agent",
-  "version": "1.0.0",
-  "description": "",
+  "name": "planty-prototyping-agent",
+  "version": "0.0.1",
+  "description": "Planty Prototyping Agent",
   "_main": "index.js",
   "dependencies": {
     "generator-jhipster": "5.0.2",
@@ -23,7 +23,7 @@
     "type": "git",
     "url": "git+ssh://git@bitbucket.org/assistant-developers/prototyping-agent.git"
   },
-  "author": "",
+  "author": "MacPersia",
   "license": "ISC",
   "homepage": "https://bitbucket.org/assistant-developers/prototyping-agent#readme"
 }
