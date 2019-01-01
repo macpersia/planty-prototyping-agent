@@ -5,7 +5,7 @@
 
 	<groupId>be.planty.agents.prototyping</groupId>
 	<artifactId>planty-prototyping-agent</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Planty Prototyping Agent</name>
@@ -37,12 +37,12 @@
 		<dependency>
 			<groupId>be.planty.agents.assistant</groupId>
 			<artifactId>planty-assistant-agent</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>be.planty.models.prototyping</groupId>
 			<artifactId>planty-prototyping-model</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.2-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
