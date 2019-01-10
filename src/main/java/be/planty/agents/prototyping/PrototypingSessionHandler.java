@@ -17,6 +17,7 @@ import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static be.planty.models.assistant.Constants.PAYLOAD_TYPE_KEY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -29,6 +30,8 @@ public class PrototypingSessionHandler extends AgentSessionHandler {
 
     private static final String BASE_URL = "http://dummy-api-host/api";
 
+    private static final AtomicLong appSequence = new AtomicLong(0);
+
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
         //super.handleFrame(headers, payload);
@@ -40,7 +43,14 @@ public class PrototypingSessionHandler extends AgentSessionHandler {
 
                 // TODO: remove the following once the implementation is ready
                 if (true) {
-                    sendActionResponse(headers, HttpStatus.NOT_IMPLEMENTED.value());
+                    //sendActionResponse(headers, HttpStatus.NOT_IMPLEMENTED.value());
+                    final String appId;
+                    synchronized (appSequence) {
+                        appId = "app#" + appSequence.incrementAndGet();
+                    }
+                    final var actionResponse = new ActionResponse<>(HttpStatus.OK.value(), appId);
+                    logger.info("actionResponse: " + actionResponse);
+                    sendActionResponse(headers, actionResponse);
                     return;
                 }
 
