@@ -15,5 +15,6 @@ node {
 			sh "mvn deploy -DskipTests -DaltDeploymentRepository=local-snapshots::default::http://repo-nexus-service:8081/repository/maven-snapshots"
 		}
 	}
+	// NOTHING!
 }
 
