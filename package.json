@@ -4,7 +4,7 @@
   "description": "Planty Prototyping Agent",
   "_main": "index.js",
   "dependencies": {
-    "generator-jhipster": "5.0.2",
+    "generator-jhipster": "^5.8.2",
     "yeoman-environment": "2.3.0",
     "yeoman-gen-run": "1.2.3"
   },
