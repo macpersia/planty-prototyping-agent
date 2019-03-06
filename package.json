@@ -1,17 +1,17 @@
 {
-  "name": "prototyping-agent",
-  "version": "1.0.0",
-  "description": "",
+  "name": "planty-prototyping-agent",
+  "version": "0.0.1",
+  "description": "Planty Prototyping Agent",
   "_main": "index.js",
   "dependencies": {
-    "generator-jhipster": "^5.0.2",
-    "yeoman-environment": "^2.3.0",
-    "yeoman-gen-run": "^1.2.3"
+    "generator-jhipster": "^5.8.2",
+    "yeoman-environment": "2.3.0",
+    "yeoman-gen-run": "1.2.3"
   },
   "devDependencies": {
-    "@types/node": "^10.5.2",
-    "@types/yeoman-generator": "^2.0.3",
-    "typescript": "^2.9.2"
+    "@types/node": "10.5.2",
+    "@types/yeoman-generator": "2.0.3",
+    "typescript": "2.9.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -23,7 +23,7 @@
     "type": "git",
     "url": "git+ssh://git@bitbucket.org/assistant-developers/prototyping-agent.git"
   },
-  "author": "",
+  "author": "MacPersia",
   "license": "ISC",
   "homepage": "https://bitbucket.org/assistant-developers/prototyping-agent#readme"
 }

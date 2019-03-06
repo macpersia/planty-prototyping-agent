@@ -24,9 +24,9 @@
 //     );
 // });
 
-var runner 	= require('yeoman-gen-run');
-var genName = 'jhipster';
-var config = {
+const runner 	= require('yeoman-gen-run');
+const genName = 'jhipster';
+const config = {
     "answers": {
         "appName": "my-jhipster-app",
         "useTypeScript": true,
@@ -77,7 +77,7 @@ var config = {
         }
     }
 };
-var outDir = "../my-jhipster-app";
+const outDir = "/tmp/my-jhipster-app";
  
 runner.runGenerator(genName, config, outDir).then(function() {
     console.log('Done generating the app!');
