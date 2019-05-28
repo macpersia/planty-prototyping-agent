@@ -11,7 +11,7 @@ node {
 	}
 
 	stage('build') {
-		withMaven(jdk: 'jdk-10.0.2', maven: 'maven-3.6.0', mavenSettingsConfig: 'my-maven-settings'/*, tempBinDir: ''*/) {
+		withMaven(jdk: 'jdk-11', maven: 'maven-3.6.1', mavenSettingsConfig: 'my-maven-settings'/*, tempBinDir: ''*/) {
 			sh "mvn deploy -DskipTests -DaltDeploymentRepository=local-snapshots::default::http://repo-nexus-service:8081/repository/maven-snapshots"
 		}
 	}
